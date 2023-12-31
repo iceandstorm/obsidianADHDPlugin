@@ -20,3 +20,10 @@ data.json
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+commonCelebration.mp3
+CommonCelebration.wav
+dailyReady.mp3
+dailyReady.wav
+positiveBase.mp3
+positiveBase.wav
+rareCelebration.mp3
