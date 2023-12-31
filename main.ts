@@ -30,7 +30,7 @@ interface MyPluginSettings {
 	commonCelebration:number;
 	rareCelebration:number;
 
-	milsSinceLastCleanup:number;
+
 
 
 }
@@ -54,7 +54,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	commonCelebration:0.5,
 	rareCelebration:0.75,
 
-	milsSinceLastCleanup: 0,
+
 
 }
 
