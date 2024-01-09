@@ -675,7 +675,7 @@ export default class ADHDHelperPlugin extends Plugin {
 
 				if(removeCompletedNonPeriodics)
 				{
-					editor.replaceRange("", { line: i, ch: 0 }, { line: i + 1, ch: 0 });
+					//editor.replaceRange("", { line: i, ch: 0 }, { line: i + 1, ch: 0 });
 				}
 			}
 

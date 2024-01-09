@@ -1,7 +1,7 @@
 {
 	"id": "adhd-helper",
 	"name": "ADHD Helper",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "A plugin that should help me to make my live easier.",
 	"author": "Iceandstormn",
