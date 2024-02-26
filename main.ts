@@ -369,6 +369,14 @@ export default class ADHDHelperPlugin extends Plugin {
 		}
 	}
 
+	async SwapLine()
+	{
+		//swap the current line with the line above or below
+		//keep the whitespace indent of the line on the position - swap only the content
+	}
+
+
+
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
@@ -612,13 +620,17 @@ export default class ADHDHelperPlugin extends Plugin {
 		}
 	}
 
+
+
 	async checkNextDay()
 	{
 		await this.readMeta(); //means daily and timestamp and stuff is avaiable
 
 		if(Date.now() > this.UpdatePlanned)
 		{	
-			new Notice("date now :" + Date.now() + " is bigger than " + this.UpdatePlanned, 0);	
+			//new Notice("date now :" + Date.now() + " is bigger than " + this.UpdatePlanned, 0);	
+
+			new Notice ("Planned time: " + this.timeStampToEuropean(this.UpdatePlanned) + " Current time: " +  this.timeStampToEuropean(Date.now()) + " ", 0);
 			this.Cleanup(true, true, true);
 		}
 		else
@@ -682,7 +694,7 @@ export default class ADHDHelperPlugin extends Plugin {
 			var currentTime = new Date (Date.now());
 
 			// Set the time to 6 AM
-			currentTime.setHours(6, 0, 0, 0);
+			currentTime.setHours(7, 0, 0, 0);
 	
 			// Get the timestamp for tomorrow at 6 AM
 			const tomorrowTimestamp = currentTime.getTime() + 24 * 60 * 60 * 1000;
@@ -878,6 +890,21 @@ export default class ADHDHelperPlugin extends Plugin {
 			}, this.settings.rareRewardDuration);
 		}
 	}
+
+	timeStampToEuropean(timestamp: number): string {
+		// Create a Date object from the timestamp
+		var date = new Date(timestamp);
+	
+		// Format the date and time in European style (YYYY-MM-DD HH:MM)
+		var year = date.getFullYear();
+		var month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, add 1 and pad with zero if needed
+		var day = String(date.getDate()).padStart(2, '0');
+		var hours = String(date.getHours()).padStart(2, '0');
+		var minutes = String(date.getMinutes()).padStart(2, '0');
+	
+		return `${year}-${month}-${day} ${hours}:${minutes}`;
+	}
+	
 }
 
 class FloatingElement {
