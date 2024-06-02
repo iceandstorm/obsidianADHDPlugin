@@ -217,6 +217,7 @@ export default class ADHDHelperPlugin extends Plugin {
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => this.tick(), 1 * 1000)); //ms -> *1000 for seconds
+
 	}
 
 	onunload() {
@@ -494,8 +495,141 @@ export default class ADHDHelperPlugin extends Plugin {
 		await this.writeMeta();
     }
 
+	async getDailyScore(): Promise<number> {
+
+		let score = -1; // Some integer value
+		let dailyScoreFound = false;
+		if(await this.WrongNote()){return score;} 
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;		
+		if(editor)
+		{
+			for (let i = 0; i < editor.lineCount(); i++)
+			{
+				const lineText = editor.getLine(i);
+				if(lineText.includes("Daily Score Δ:"))
+				{
+					dailyScoreFound = true;
+					const scoreString = lineText.match(/Daily Score Δ:\s*(\d+)/);
+					if(scoreString != null)
+					{
+						const scoreN = parseInt(scoreString[1], 10);
+						score = scoreN;
+						//new Notice('GetDailyScore: Property with name: "Daily Score Δ: "'+ score , 0);
+						break;
+					}
+				}					
+			}	
+			if(dailyScoreFound == false)
+			{
+				new Notice('GetDailyScore Error: Property with name: "Daily Score Δ:" not found', 0);
+			}
+
+		}
+		return score;
+	}
+
+	async getTotalScore(): Promise<number> {
+
+		let totalScore = -1; // Some integer value
+		if(await this.WrongNote()){return totalScore;} 
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;		
+		if(editor)
+		{
+			for (let i = 0; i < editor.lineCount(); i++)
+			{
+				const lineText = editor.getLine(i);
+
+				if(lineText.includes("Total Score ≙:"))
+				{
+					const totalString = lineText.match(/Total Score ≙:\s*(\d+)/);
+					if(totalString != null)
+					{
+						const totalN = parseInt(totalString[1], 10);
+						totalScore = totalN;
+						new Notice('GetDailyScore: Property with name: "Total Score Δ: "'+ totalScore , 0);
+						break;
+					}								
+			}	
+			new Notice('GetDailyScore Error: Property with name: "Total Score Δ:" not found', 0);
+			}
+		}
+		return totalScore;
+	}
+
+
+	async setDailyScore(newScore: number)
+	{
+		if(await this.WrongNote()){return;} 
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;		
+		if(editor)
+		{
+			var dailyFound = false;
+			for (let i = 0; i < editor.lineCount(); i++)
+			{
+				
+				var lineText = editor.getLine(i);
+				if(lineText.includes("Daily Score Δ:"))
+				{
+					dailyFound = true;
+					lineText = `Daily Score Δ: ${newScore}\n`;				
+					editor.replaceRange(lineText, { line: i, ch: 0 }, { line: i + 1, ch: 0 });
+					break;
+				}															
+			}
+
+			if(!dailyFound)
+			{
+				new Notice('Write Meta Error: Property with name: "Daily Score Δ:" is missing', 0);
+			}	
+		}		
+	}
+
+	async setTotalScore(newTotalScore: number)
+	{
+		if(await this.WrongNote()){return;} 
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;		
+		if(editor)
+		{
+			var dailyFound = false;
+			for (let i = 0; i < editor.lineCount(); i++)
+			{
+				
+				var lineText = editor.getLine(i);
+
+				if(lineText.includes("Total Score ≙:"))
+				{
+					const totalString = lineText.match(/Total Score ≙:\s*(\d+)/);
+					if(totalString != null)
+					{
+						const totalN = parseInt(totalString[1], 10);
+						this.totalScore = totalN;
+						new Notice('GetDailyScore: Property with name: "Total Score Δ: "'+ this.totalScore , 0);
+						break;
+					}				
+
+				if(lineText.includes("Total Score ≙:"))
+				{
+					dailyFound = true;
+					lineText = `Daily Score Δ: ${newTotalScore}\n`;				
+					editor.replaceRange(lineText, { line: i, ch: 0 }, { line: i + 1, ch: 0 });
+					break;
+				}															
+			}
+
+			if(!dailyFound)
+			{
+				new Notice('Write Meta Error: Property with name: "Daily Score Δ:" is missing', 0);
+			}	
+		}		
+	}
+}
+	
+
 	async readMeta()
 	{
+		this.getDailyScore();
+
+
 		if(await this.WrongNote()){return;} 
 
 		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;		
@@ -536,7 +670,8 @@ export default class ADHDHelperPlugin extends Plugin {
 					if(timestampString != null)
 					{
 						const timestampDate = parseInt(timestampString[1], 10);
-						this.UpdatePlanned = timestampDate;						
+						this.UpdatePlanned = timestampDate;		
+						//new Notice ("update planned is read to be: " + this.UpdatePlanned, 0);				
 					}
 					else
 					{
@@ -583,6 +718,7 @@ export default class ADHDHelperPlugin extends Plugin {
 					ResetPlannedFound = true;
 					lineText = `Reset Planned ↻: ${this.UpdatePlanned}\n`;				
 					editor.replaceRange(lineText, { line: i, ch: 0 }, { line: i + 1, ch: 0 });
+					//new Notice ("update planned is written as: " + this.UpdatePlanned, 0);	
 				}												
 			}
 
@@ -624,32 +760,41 @@ export default class ADHDHelperPlugin extends Plugin {
 
 	async checkNextDay()
 	{
+		//new Notice ("check next day -> new update time (bevor reading): " + this.UpdatePlanned, 0);
 		await this.readMeta(); //means daily and timestamp and stuff is avaiable
+		//new Notice ("check next day -> new update time after reading: " + this.UpdatePlanned, 0);
 
 		if(Date.now() > this.UpdatePlanned)
 		{	
 			//new Notice("date now :" + Date.now() + " is bigger than " + this.UpdatePlanned, 0);	
 
-			new Notice ("Planned time: " + this.timeStampToEuropean(this.UpdatePlanned) + " Current time: " +  this.timeStampToEuropean(Date.now()) + " ", 0);
+
+			// new Notice ("Planned time: " + this.timeStampToEuropean(this.UpdatePlanned) + " Current time: " +  this.timeStampToEuropean(Date.now()) + " ", 0);
 			this.Cleanup(true, true, true);
+
 		}
 		else
 		{
 			//const datestring = new Date(this.UpdatePlanned).toLocaleString();
 			//new Notice("date now :" + Date.now() + " is smaller than " + this.UpdatePlanned + " -> " + datestring, 0);
 		}
+		//new Notice ("check next day END -> new update time: " + this.UpdatePlanned, 0);
 	}
 
 	//rebuild the habit section
 	async Cleanup(resetHabits: boolean, removeCompletedNonPeriodics: boolean, moveToDaily: boolean)
 	{
-		/*
-
+		//new Notice ("CLEANUP START", 0);
+		/*		
 		set daily score to zero
 		reset all lines with the #daily or #habit tag. 
 		*/
 
 		if(await this.WrongNote()){return;} 
+
+		//new Notice ("CLEANUP update time, bevor reading: " + this.UpdatePlanned, 0);
+		await this.readMeta();
+		//new Notice ("CLEANUP update time, after reading: " + this.UpdatePlanned, 0);
 
 		//new Notice("cleanup" + resetHabits + " " + removeCompletedNonPeriodics + " " + moveToDaily)
 
@@ -697,8 +842,7 @@ export default class ADHDHelperPlugin extends Plugin {
 			currentTime.setHours(7, 0, 0, 0);
 	
 			// Get the timestamp for tomorrow at 6 AM
-			const tomorrowTimestamp = currentTime.getTime() + 24 * 60 * 60 * 1000;
-			this.UpdatePlanned = tomorrowTimestamp;
+			this.UpdatePlanned = currentTime.getTime() + 24 * 60 * 60 * 1000;;
 
 			
 		this.dailyScore = 0;
